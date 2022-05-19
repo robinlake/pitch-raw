@@ -48,6 +48,9 @@ function drawVisualizer() {
   
       canvasContext.fillStyle = `hsl(${y / height * 400}, 100%, 50%)`
       canvasContext.fillRect(x, height - y, barWidth, y)
+      if (item > 10) {
+          canvasContext.strokeText(frequencyArray[index], x, height - y)
+      }
     })
   }
   
