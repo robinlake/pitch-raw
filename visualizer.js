@@ -20,11 +20,14 @@ function drawVisualizer() {
     for (let i = 0; i < bufferLength; i++) {
         frequencyStrengthMap.set(frequencyArray[i], dataArray[i]);
     }
-    
+
+    sortedStrengths = new Map([...frequencyStrengthMap.entries()].sort((a, b) => b[1] - a[1]))
+
     if (dataArray[0] > 40) {
         console.log("bufferLength: ", bufferLength);
         console.log("frequencyArray: ", frequencyArray);
         console.log("frequencyStrengthMap: ", frequencyStrengthMap);
+        console.log("sortedStrengths: ", sortedStrengths);
         console.log(dataArray);
     }
 

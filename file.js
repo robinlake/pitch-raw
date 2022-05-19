@@ -1,6 +1,6 @@
-const context = new AudioContext({sampleRate: 16000})
-// const analyserNode = new AnalyserNode(context, { fftSize: 256 })
-const analyserNode = new AnalyserNode(context)
+const context = new AudioContext({sampleRate: 4000})
+const analyserNode = new AnalyserNode(context, { fftSize: 128 })
+// const analyserNode = new AnalyserNode(context)
 const gainNode = new GainNode(context, { gain: volume.value})
 
 setupEventListeners()
