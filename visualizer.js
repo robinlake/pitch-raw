@@ -3,10 +3,35 @@ const visualizer = document.getElementById('visualizer')
 
 function drawVisualizer() {
     requestAnimationFrame(drawVisualizer)
+
   
     const bufferLength = analyserNode.frequencyBinCount
+
+    const maxFrequency = context.sampleRate;
+    const frequencyArray = new Array(bufferLength);
+    for (let i = 0; i < bufferLength; i++) {
+        frequencyArray[i] = ((i+1)/bufferLength) * maxFrequency;
+    }
+
     const dataArray = new Uint8Array(bufferLength)
     analyserNode.getByteFrequencyData(dataArray)
+
+    const frequencyStrengthMap = new Map()
+    for (let i = 0; i < bufferLength; i++) {
+        frequencyStrengthMap.set(frequencyArray[i], dataArray[i]);
+    }
+    
+    if (dataArray[0] > 40) {
+        console.log("bufferLength: ", bufferLength);
+        console.log("frequencyArray: ", frequencyArray);
+        console.log("frequencyStrengthMap: ", frequencyStrengthMap);
+        console.log(dataArray);
+    }
+
+
+    // const timeDomainArray = new Uint8Array(bufferLength)
+    // analyserNode.getByteTimeDomainData(timeDomainArray)
+    // console.log(timeDomainArray);
     const width = visualizer.width
     const height = visualizer.height
     const barWidth = width / bufferLength
