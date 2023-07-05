@@ -1,5 +1,8 @@
 body {
     font: 14pt "Alike", sans-serif;
+    display: grid;
+    justify-content: center;
+    align-items: center;
 }
 
 #note {
