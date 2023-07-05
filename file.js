@@ -1,5 +1,6 @@
 import {volume, visualizer, resize} from './visualizer.js'
 // import {volume, visualizer, drawVisualizer, resize} from './visualizer.js'
+import { initializeControls } from './controls.js'
 
 const context = new AudioContext({sampleRate: 4000})
 const analyserNode = new AnalyserNode(context, { fftSize: 128 })
@@ -61,11 +62,11 @@ function drawVisualizer() {
   let sortedStrengths = new Map([...frequencyStrengthMap.entries()].sort((a, b) => b[1] - a[1]))
 
   if (dataArray[0] > 40) {
-      console.log("bufferLength: ", bufferLength);
-      console.log("frequencyArray: ", frequencyArray);
-      console.log("frequencyStrengthMap: ", frequencyStrengthMap);
-      console.log("sortedStrengths: ", sortedStrengths);
-      console.log(dataArray);
+      // console.log("bufferLength: ", bufferLength);
+      // console.log("frequencyArray: ", frequencyArray);
+      // console.log("frequencyStrengthMap: ", frequencyStrengthMap);
+      // console.log("sortedStrengths: ", sortedStrengths);
+      // console.log(dataArray);
   }
 
 
@@ -92,12 +93,13 @@ function drawVisualizer() {
 }
 
 window.onload = function() {
-  console.log(volume);
-  console.log(visualizer);
+  // console.log(volume);
+  // console.log(visualizer);
   setupEventListeners();
   setupContext();
   resize();
   drawVisualizer();
+  initializeControls();
   // if (analyserNode && context.sampleRate != undefined) {
   //   drawVisualizer(analyserNode, context);
   // }
