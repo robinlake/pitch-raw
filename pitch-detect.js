@@ -67,6 +67,8 @@
 // console.log(autoCorrelate(buffer, sampleRate));
 // Stolen from https://www.zigtuner.com/
 // @TODO test test test
+
+import { autoCorrelate } from "./tuner.js";
 function sf(buf, sampleRate, eps = 0.001) {
     // var g = buf;
     const SIZE = buf.length;
@@ -143,30 +145,39 @@ function frequencyFromNoteNumber(note) {
 function centsOffFromPitch(frequency, note) {
     return Math.floor((1200 * Math.log(frequency / frequencyFromNoteNumber(note))) / Math.log(2));
 }
-let audioContext = new AudioContext();
+// let mediaStreamSource, analyser;
 let buflen = 2048;
 let buf = new Float32Array(buflen);
-let mediaStreamSource, analyser;
+let analyser;
 let detectorElem = document.querySelector('#detector');
 let pitchElem = document.querySelector('#pitch');
 let noteElem = document.querySelector('#note');
 let detuneElem = document.querySelector('#detune');
 let detuneAmount = document.querySelector('#detune_amt');
-function initializePitchContext() {
-    audioContext = new AudioContext();
-    buflen = 2048;
-    buf = new Float32Array(buflen);
+let ctx;
+
+function initializePitchContext(audioContext) {
+    // let audioContext = new AudioContext();
+    ctx = audioContext;
+
+    // audioContext = new AudioContext();
+    // buflen = 2048;
+    // buf = new Float32Array(buflen);
     detectorElem = document.querySelector('#detector');
     pitchElem = document.querySelector('#pitch');
     noteElem = document.querySelector('#note');
     detuneElem = document.querySelector('#detune');
     detuneAmount = document.querySelector('#detune_amt');
 }
-function updatePitch() {
+function updatePitch(audioContext) {
+    // let buflen = 2048;
+// let buf = new Float32Array(buflen);
     requestAnimationFrame(updatePitch);
     analyser.getFloatTimeDomainData(buf);
     const numberBuf = new Array(...buf);
-    const ac = sf(numberBuf, audioContext.sampleRate);
+    // const ac = autoCorrelate(numberBuf, audioContext.sampleRate);
+    const ac = autoCorrelate(numberBuf, ctx.sampleRate);
+    // const ac = sf(numberBuf, audioContext.sampleRate);
     if (ac === -1 && detectorElem && pitchElem && noteElem && detuneElem && detuneAmount) {
         // detectorElem.className = 'vague';
         detectorElem.classList.add('vague');
@@ -180,6 +191,7 @@ function updatePitch() {
         const pitch = ac;
         const note = noteFromPitch(pitch);
         const detune = centsOffFromPitch(pitch, note);
+        // if (detectorElem && pitchElem && noteElem && detuneElem && detuneAmount) {
         if (detectorElem && pitchElem && noteElem && detuneElem && detuneAmount) {
             // detectorElem.className = 'confident';
             detectorElem.classList.add('confident');
@@ -197,25 +209,26 @@ function updatePitch() {
         }
     }
 }
-function gotStream(stream) {
+function gotStream(stream, audioContext) {
     // Create an AudioNode from the stream.
-    mediaStreamSource = audioContext.createMediaStreamSource(stream);
+    let mediaStreamSource = audioContext.createMediaStreamSource(stream);
     // Connect it to the destination.
+    // let analyser = audioContext.createAnalyser();
     analyser = audioContext.createAnalyser();
     analyser.fftSize = 2048;
     mediaStreamSource.connect(analyser);
-    updatePitch();
+    updatePitch(audioContext);
 }
-function initializePitchDetect() {
+function initializePitchDetect(audioContext) {
     console.log("initialize Pitch detect");
-    initializePitchContext();
+    initializePitchContext(audioContext);
     navigator.mediaDevices
         .getUserMedia({
         audio: true
     })
         .then((stream) => {
-        console.log("got stream");
-        gotStream(stream);
+            gotStream(stream, audioContext);
+            console.log("got stream");
     })
         .catch((err) => {
         console.log(err);

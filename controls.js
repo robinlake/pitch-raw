@@ -1,6 +1,6 @@
 import { initializePitchDetect } from "./pitch-detect.js";
 
-function initializeControls() {
+function initializeControls(audioContext) {
     const pitch = document.getElementById("pitch-detect");
     const detector = document.getElementById("detector");
     console.log("initialize controls")
@@ -9,7 +9,7 @@ function initializeControls() {
         let active = false;
         pitch.addEventListener("click", () => {
             if (!initialized) {
-                initializePitchDetect();
+                initializePitchDetect(audioContext);
                 initialized = true;
                 active = true;
                 pitch.innerHTML = "Hide Pitch";

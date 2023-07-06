@@ -40,5 +40,5 @@ function getGuitar() {
 window.onload = function() {
   setupEventListeners();
   setupContext();
-  initializeControls();
+  initializeControls(context);
 };
