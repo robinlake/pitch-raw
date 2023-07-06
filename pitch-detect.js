@@ -1,104 +1,5 @@
-// Code taken from https://jsfiddle.net/yckart/f0tnhjzy/
-// https://github.com/cwilso/PitchDetect/pull/23
-// https://github.com/dalatant/PitchDetect/blob/b0d5d28d2803d852dd85d2a1e53c22bcedba4cbf/js/pitchdetect.js
-// https://github.com/peterkhayes/pitchfinder
-// Thesis http://hellanicus.lib.aegean.gr/handle/11610/8650
-// Implementation https://www.mathworks.com/matlabcentral/fileexchange/54663-yin-tuner
-// More at https://ccrma.stanford.edu/~jos/parshl/Peak_Detection_Steps_3.html
-// function autoCorrelate(
-//   buf: number[],
-//   sampleRate: number,
-//   eps = 0.001,
-//   threshold = 0.2
-// ) {
-//   // Implements the ACF2+ algorithm
-//   let SIZE = buf.length;
-//   let rms = 0;
-//   for (let i = 0; i < SIZE; i++) {
-//     const val = buf[i];
-//     rms += val * val;
-//   }
-//   rms = Math.sqrt(rms / SIZE);
-//   // not enough signal
-//   if (rms < eps) return -1;
-//   // trim
-//   let r1 = 0,
-//     r2 = SIZE - 1;
-//   for (let i = 0; i < SIZE / 2; i++)
-//     if (Math.abs(buf[i]) < threshold) {
-//       r1 = i;
-//       break;
-//     }
-//   for (let i = 1; i < SIZE / 2; i++)
-//     if (Math.abs(buf[SIZE - i]) < threshold) {
-//       r2 = SIZE - i;
-//       break;
-//     }
-//   buf = buf.slice(r1, r2);
-//   SIZE = buf.length;
-//   // autocorrelation
-//   const c = new Array(SIZE).fill(0);
-//   for (let i = 0; i < SIZE; i++)
-//     for (let j = 0; j < SIZE - i; j++) c[i] += buf[j] * buf[j + i];
-//   // find first dip
-//   let d = 0;
-//   while (c[d] > c[d + 1]) d++;
-//   let maxval = -1,
-//     maxpos = -1;
-//   for (let i = d; i < SIZE; i++) {
-//     if (c[i] > maxval) {
-//       maxval = c[i];
-//       maxpos = i;
-//     }
-//   }
-//   let T0 = maxpos;
-//   // interpolation
-//   const x1 = c[T0 - 1],
-//     x2 = c[T0],
-//     x3 = c[T0 + 1];
-//   const a = (x1 + x3 - 2 * x2) / 2;
-//   const b = (x3 - x1) / 2;
-//   if (a) T0 = T0 - b / (2 * a);
-//   return sampleRate / T0;
-// }
-// const sampleRate = 44100;
-// const bufferSize = 1024;
-// const buffer = [261.63, 293.66, 329.63, 349.23, 392.0, 440.0, 493.88, 523.25];
-// console.log(autoCorrelate(buffer, sampleRate));
-// Stolen from https://www.zigtuner.com/
-// @TODO test test test
-
 import { autoCorrelate } from "./tuner.js";
-function sf(buf, sampleRate, eps = 0.001) {
-    // var g = buf;
-    const SIZE = buf.length;
-    const mat = Array(SIZE).fill(0);
-    for (let c = 0; c < SIZE; c++)
-        for (let k = 0; k < SIZE - c; k++)
-            mat[c] += buf[k] * buf[k + c];
-    // not enough signal
-    const rms = Math.sqrt(mat[0] / SIZE);
-    if (rms < eps)
-        return -1;
-    let d = 0;
-    for (d; mat[d] > mat[d + 1]; ++d)
-        ; // find first non-decreasing row?
-    let newg = -1;
-    let k = newg;
-    for (k; d < SIZE; d++) {
-        if (mat[d] > newg) {
-            newg = mat[(k = d)];
-        }
-    }
-    let T0 = k;
-    const x1 = mat[T0 - 1], x2 = mat[T0], x3 = mat[T0 + 1];
-    const a = (x1 + x3 - 2 * x2) / 2;
-    const b = (x3 - x1) / 2;
-    if (a) {
-        T0 = T0 - b / (2 * a);
-    }
-    return sampleRate / T0;
-}
+
 // console.log(sf(buffer, sampleRate));
 // /**
 //  * Implements the normalized square difference function. See section 4 (and
@@ -145,7 +46,6 @@ function frequencyFromNoteNumber(note) {
 function centsOffFromPitch(frequency, note) {
     return Math.floor((1200 * Math.log(frequency / frequencyFromNoteNumber(note))) / Math.log(2));
 }
-// let mediaStreamSource, analyser;
 let buflen = 2048;
 let buf = new Float32Array(buflen);
 let analyser;
@@ -157,12 +57,7 @@ let detuneAmount = document.querySelector('#detune_amt');
 let ctx;
 
 function initializePitchContext(audioContext) {
-    // let audioContext = new AudioContext();
     ctx = audioContext;
-
-    // audioContext = new AudioContext();
-    // buflen = 2048;
-    // buf = new Float32Array(buflen);
     detectorElem = document.querySelector('#detector');
     pitchElem = document.querySelector('#pitch');
     noteElem = document.querySelector('#note');
@@ -170,16 +65,11 @@ function initializePitchContext(audioContext) {
     detuneAmount = document.querySelector('#detune_amt');
 }
 function updatePitch(audioContext) {
-    // let buflen = 2048;
-// let buf = new Float32Array(buflen);
     requestAnimationFrame(updatePitch);
     analyser.getFloatTimeDomainData(buf);
     const numberBuf = new Array(...buf);
-    // const ac = autoCorrelate(numberBuf, audioContext.sampleRate);
     const ac = autoCorrelate(numberBuf, ctx.sampleRate);
-    // const ac = sf(numberBuf, audioContext.sampleRate);
     if (ac === -1 && detectorElem && pitchElem && noteElem && detuneElem && detuneAmount) {
-        // detectorElem.className = 'vague';
         detectorElem.classList.add('vague');
         detectorElem.classList.remove('confident');
         pitchElem.textContent = '--';
@@ -191,9 +81,7 @@ function updatePitch(audioContext) {
         const pitch = ac;
         const note = noteFromPitch(pitch);
         const detune = centsOffFromPitch(pitch, note);
-        // if (detectorElem && pitchElem && noteElem && detuneElem && detuneAmount) {
         if (detectorElem && pitchElem && noteElem && detuneElem && detuneAmount) {
-            // detectorElem.className = 'confident';
             detectorElem.classList.add('confident');
             detectorElem.classList.remove('vague');
             pitchElem.textContent = Math.round(pitch).toString();
@@ -220,7 +108,6 @@ function gotStream(stream, audioContext) {
     updatePitch(audioContext);
 }
 function initializePitchDetect(audioContext) {
-    console.log("initialize Pitch detect");
     initializePitchContext(audioContext);
     navigator.mediaDevices
         .getUserMedia({
@@ -231,7 +118,7 @@ function initializePitchDetect(audioContext) {
             console.log("got stream");
     })
         .catch((err) => {
-        console.log(err);
+        console.log(`Error: ${err}`);
         /* handle that error */
     });
 }

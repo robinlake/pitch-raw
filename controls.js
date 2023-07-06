@@ -3,7 +3,6 @@ import { initializePitchDetect } from "./pitch-detect.js";
 function initializeControls(audioContext) {
     const pitch = document.getElementById("pitch-detect");
     const detector = document.getElementById("detector");
-    console.log("initialize controls")
     if (pitch != null && detector != null) {
         let initialized = false;
         let active = false;
